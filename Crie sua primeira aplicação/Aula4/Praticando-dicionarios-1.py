@@ -1,0 +1,1 @@
+dicionario = {'Victor':{'Idade':29,'Cidade':'Rio de Janeiro'}}
