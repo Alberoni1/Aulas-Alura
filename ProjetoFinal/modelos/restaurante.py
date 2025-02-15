@@ -1,14 +1,19 @@
+from modelos.cardapio.item_cardapio import ItemCardapio
+from modelos.clientes.avaliacao import Avaliacao
+
 class Restaurante:
     restaurantes = []
 
     def __init__(self, nome, categoria):
-        self.nome = nome
+        self._nome = nome
         self.categoria = categoria
         self._status = False
+        self._cardapio = []
+        self._avaliacao  = []
         Restaurante.restaurantes.append(self)
 
     def __str__(self):
-        return f'{self.nome} | {self.categoria} | {self.ativo}'
+        return f'{self._nome} | {self.categoria} | {self.ativo}'
     
     @classmethod
     def listar_restaurantes(cls):
@@ -38,6 +43,28 @@ class Restaurante:
     def alterar_status(self):
         self._status = not self._status
 
+    def receber_avaliacao(self,cliente, nota):
+        if 0 < nota < 5:
+            avaliacao = Avaliacao(cliente,nota)
+            self._avaliacao.append(avaliacao)
 
 
-
+    @property
+    def media_avaliacao(self):
+        if not self._avaliacao:
+            return '-'
+        soma_de_notas = sum(avaliacao._nota for avaliacao in self._avaliacao)
+        qnt_notas = len(self._avaliacao)
+        media = soma_de_notas/qnt_notas
+        return media
+    
+    def adicionar_no_cardapio(self,item):
+        if isinstance(item,ItemCardapio):
+            self._cardapio.append(item)
+    
+    @property
+    def exibir_cardapio(self):
+        print(f'Cardapiod do Restaurante{self._nome}\n')
+        for i,item in enumerate(self._cardapio,start=1):
+            mensagem = f'{i}. Nome:{item._item} | Preço: R${"{:,.2f}".format(item._preco).replace(",", "X").replace(".", ",").replace("X", ".")}'
+            print(mensagem)

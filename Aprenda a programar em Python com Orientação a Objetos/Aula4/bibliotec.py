@@ -7,7 +7,12 @@ livro4 = Livro('Aprendendo Python', 'John Doe', 2022)
 livro5 = Livro('Data Science Fundamentals', 'Jane Smith', 2020)
 livro6 = Livro('À Espera de um Milagre', 'Stephen King', 1996)
 
-print(livro2.disponivel())
+print(livro2)
 
-for livro in Livro.verificar_disponibilidade(1996):
-    print(livro)
+print(Livro.verificar_disponibilidade(1996))
+
+lista_de_livros = Livro.verificar_disponibilidade(1996)
+
+
+for livro in lista_de_livros:
+    print(livro._autor)
