@@ -19,3 +19,4 @@ def buscar(request):
             fotografias = fotografias.filter(nome__icontains=nome_a_buscar)
 
     return render(request, 'galeria/buscar.html',{'cards':fotografias})
+
