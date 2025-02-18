@@ -1,0 +1,1 @@
+Tentando passar todos os exercicios de Orientação a Objetos para o DJANGO
