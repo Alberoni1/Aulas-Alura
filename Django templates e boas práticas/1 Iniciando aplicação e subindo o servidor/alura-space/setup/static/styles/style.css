@@ -112,6 +112,7 @@ table {
 }
 
 .busca__icone {
+    background-color: transparent;
     cursor: pointer;
     width: 2rem;
     height: 2rem;
@@ -402,7 +403,19 @@ table {
 }
 
 .alert-primary {
-    --bs-alert-color: #084298;
-    --bs-alert-bg: #cfe2ff;
-    --bs-alert-border-color: #b6d4fe;
+  --bs-alert-color: #080a98;
+  --bs-alert-bg: #d2cfff;
+  --bs-alert-border-color: #cfecff;
+}
+
+.alert-danger {
+    --bs-alert-color: #842029;
+    --bs-alert-bg: #f8d7da;
+    --bs-alert-border-color: #f5c2c7;
+}
+
+.alert-success {
+    --bs-alert-color: #0f5132;
+    --bs-alert-bg: #d1e7dd;
+    --bs-alert-border-color: #badbcc;
 }

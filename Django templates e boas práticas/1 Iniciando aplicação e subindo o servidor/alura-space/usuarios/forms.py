@@ -97,3 +97,27 @@ class CadastroForms(forms.Form):
             }
         )
     )
+
+    def clean_usuario1(self):
+        nome = self.cleaned_data.get('usuario1')
+        if nome:
+            nome = nome.strip()
+            if " " in nome:
+                raise forms.ValidationError('Não é possivel conter espaços no usuario')
+            else:
+                return nome
+        
+
+    
+    def clean_confirmasenha(self):
+        senha1 = self.cleaned_data.get('senha')
+        senha2 = self.cleaned_data.get('confirmasenha')
+
+        if senha1 and senha2:
+            if senha1 != senha2:
+                raise forms.ValidationError('SENHAS DIFERENTES')
+            else:
+                return senha2
+            
+
+    

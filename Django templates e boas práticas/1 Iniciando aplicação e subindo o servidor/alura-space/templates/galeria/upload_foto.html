@@ -1,0 +1,24 @@
+{% extends 'galeria/base.html' %}
+{% load static %}
+{% block content %}
+<section class="conteudo">
+
+    </section>
+    <!-- Área principal com o formulário de upload -->
+    <section class="galeria">
+        <div class="cards">
+            <h2 class="cards__titulo">Envie sua Fotografia</h2>
+            <!-- Aqui usamos uma estrutura similar ao login, com o form partial -->
+            <div class="card">
+                <form method="POST" enctype="multipart/form-data" action="">
+                    {% csrf_token %}
+                    {% include 'usuarios/partials/_forms.html' with form=form %}
+                    <div class="col-12 text-center" style="margin-top: 10px;">
+                        <button class="btn btn-success col-12" type="submit">Enviar Fotografia</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+</section>
+{% endblock %}

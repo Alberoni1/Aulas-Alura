@@ -1,0 +1,15 @@
+{% load static %}
+
+        <section class="menu-lateral">
+            <nav class="menu-lateral__navegacao">
+                {% if request.user.is_authenticated %}
+                    <a href="{% url 'index' %}"><img src="{% static '/assets/ícones/1x/Home - ativo.png'%}"> Home</a>
+                    <a href="{% url 'upload_foto' %}"><img src="{% static '/assets/ícones/1x/Novas - ativo.png'%}"> Upload Foto</a>
+                    <a href="{% url 'logout' %}"><img src="{% static '/assets/ícones/1x/porta-de-saida2.png'%}"> Logout</a>                  
+                    {% endif %}
+                {% if not request.user.is_authenticated %}
+                    <a href="{% url 'login' %}"><img src="{% static '/assets/ícones/1x/Mais vistas - inativo.png'%}"> Login</a>
+                    <a href="{% url 'cadastro' %}"><img src="{% static '/assets/ícones/1x/Novas - inativo.png'%}"> Cadastro</a>
+                {% endif %}
+                </nav>
+        </section>

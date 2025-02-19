@@ -36,9 +36,7 @@ def cadastro(request):
     if request.method == 'POST':
         form = CadastroForms(request.POST)
         if form.is_valid():        
-            if form['senha'].value() != form['confirmasenha'].value():
-                messages.error(request, 'SENHAS DIFERENTES')
-                return redirect('cadastro')
+            
             usuario1= form['usuario1'].value()
             pnome = form['primeiro_nome'].value()
             unome = form['segundo_nome'].value()
@@ -62,6 +60,7 @@ def cadastro(request):
             usuario.save()
             messages.success(request,f'{usuario1} Cadastrado com Sucesso!!')
             return redirect('login')
+        
 
     return render(request,'usuarios/cadastro.html', {'form':form})
 
