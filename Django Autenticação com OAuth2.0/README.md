@@ -1,3 +1,6 @@
+INFORMAÇÕES DE INSTALAÇÃO E CONFIGURAÇÃO NO SITE DO DJANGO-ALLAUTH:
+    https://docs.allauth.org/en/latest/installation/quickstart.html
+
 Para cadastrar o Client_ID e a Secret do GITHUB no .env, no arquivo, foi usado variaveis como:
         SECRET_KEY=django-insecure-....
         GITHUB_CLIENT_ID= Client_ID (sendo 'Client_ID' o valor dado pelo GITHUB)
