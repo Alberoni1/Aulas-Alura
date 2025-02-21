@@ -3,17 +3,15 @@
 {% block content %}
 <section class="conteudo">
 
-    </section>
-    <!-- Área principal com o formulário de upload -->
     <section class="galeria">
         <div class="cards">
             <h2 class="cards__titulo">Envie sua Fotografia</h2>
             <div class="card">
-                <form action="{% url 'upload_foto' %}" method="POST" enctype="multipart/form-data" action="">
+                <form action="{% url 'edit_foto' foto_id %}" method="POST" enctype="multipart/form-data" action="">
                     {% csrf_token %}
                     {% include 'usuarios/partials/_forms.html' with form=form %}
                     <div class="col-12 text-center" style="margin-top: 10px;">
-                        <button class="btn btn-success col-12" type="submit">Enviar Fotografia</button>
+                        <button class="btn btn-success col-12" type="submit">Editar Imagem</button>
                     </div>
                 </form>
             </div>

@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404,redirect
-from galeria.models import Fotografia
-from galeria.forms import FotografiaForm
+from apps.galeria.models import Fotografia
+from apps.galeria.forms import FotografiaForm
 from django.contrib import messages
 
 
@@ -27,7 +27,7 @@ def buscar(request):
         if nome_a_buscar:
             fotografias = fotografias.filter(nome__icontains=nome_a_buscar)
 
-    return render(request, 'galeria/buscar.html',{'cards':fotografias})
+    return render(request, 'galeria/index.html',{'cards':fotografias})
 
 def upload_foto(request):
     if request.method == 'POST':
@@ -45,3 +45,25 @@ def upload_foto(request):
     else:
         form = FotografiaForm()
     return render(request, 'galeria/upload_foto.html', {'form': form})
+
+def edit_foto(request, foto_id):
+    fotografia = Fotografia.objects.get(id=foto_id)
+    form = FotografiaForm(instance=fotografia)
+
+    if request.method == 'POST':
+        form = FotografiaForm(request.POST, request.FILES, instance=fotografia)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Foto alterada com sucesso!')
+            return redirect('index')
+    return render(request, 'galeria/edit_foto.html', {'form': form, 'foto_id': foto_id})
+
+def remover_foto(request, foto_id):
+    fotografia = Fotografia.objects.get(id=foto_id)
+    fotografia.delete()
+    messages.success(request, 'Foto removida com sucesso!')
+    return redirect('index')
+
+def filtro(request, categoria):
+    fotografias = Fotografia.objects.order_by('data_fotografia').filter(publicada=True, categoria=categoria)
+    return render(request, 'galeria/index.html', {'cards': fotografias})
