@@ -1,0 +1,69 @@
+{% extends 'shared/base.html' %}
+{% load static %}
+
+{% block content %}
+
+<section class="conteudo">
+    <section class="tags" >
+        <p class="tags__titulo">Busque por tags:</p>
+        <ul class="tags__lista">
+            <li class="tags__tag" style="flex-wrap: nowrap;">
+                <a href="{% url 'livros' %}" class="btn" style="color: #c9c9c9;">
+                    Todos
+                </a>
+            </li>
+        {% for categoria in categorias %}
+            <li class="tags__tag" style="flex-wrap: nowrap;">
+                <a href="{% url 'filtro' categoria.nome %}" class="btn" style="color: #c9c9c9;">
+                    {{ categoria.nome }}
+                </a>
+            </li>
+        {% empty %}
+            <li>Nenhuma categoria encontrada</li>
+        {% endfor %}
+        </ul>
+    </section>
+    <section class="galeria">
+        <div class="cards">
+            <h2 class="cards__titulo">Navegue pela galeria</h2>
+            <ul class="cards__lista" style="justify-content: space-evenly; flex: 0 0 35px;">
+                {% if cards %}
+                {% for livro in cards %}
+                <li class="card" style="width: auto;  height: auto; color: #212529; margin: 10px ">
+                    <a href="{% url 'livro' livro.id %}">
+                    {% if livro.capa == "" or livro.capa == null %}
+                        <img class="card__imagem" src="{% static 'assets/imagens/galeria/not-found.png'%}" 
+                        alt="capa">
+                    {% else %}
+                        <img class="card__imagem" src="{{ livro.capa.url }}" style="max-width: 500px;  max-height: 300px;  width: auto;  height: auto;  object-fit: contain;" alt="capa">
+                    {% endif %}
+                    </a>
+                    <span class="card__tag" style="left: 80px;">
+                        {% if livro.categorias.all %}
+                            {{ livro.categorias.first.nome }}
+                        {% else %}
+                            Sem categoria
+                        {% endif %}
+                    </span>
+                    <div class="card__info">
+                        <p class="card__titulo" style="max-width: 150px; white-space: normal; overflow-wrap: break-word; " >{{ livro.titulo }}</p>
+                        <div class="card__texto">
+                            <p class="card__descricao">{{ livro.editora }}</p>
+                            <span>
+                                <img src="{% static 'assets/ícones/1x/favorite_outline.png'%}" alt="ícone de coração">
+                            </span>
+                        </div>
+                    </div>
+                </li>                
+                {% endfor %}
+                {% else %}
+                <div class="imagem__texto">
+                    <p>livros não encontrados</p>
+                </div>
+                {% endif %}
+            </ul>
+        </div>
+        
+    </section>
+</section>
+{% endblock %}

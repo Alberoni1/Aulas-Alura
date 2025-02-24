@@ -1,0 +1,55 @@
+{% extends 'shared/base.html' %}
+{% load static %}
+{% block content %}
+
+
+<section class="conteudo">
+    <section class="imagem">
+        <div class="imagem__conteudo">            
+            {% if livros.capa == "" or livros.capa == null %}
+                <img class="imagem__imagem" src="{% static 'assets/imagens/galeria/not-found.png'%}" 
+                alt="foto">
+            {% else %}
+                <img class="imagem__imagem" src="{{ livros.capa.url }}" method="POST" style="max-width: 500px;  max-height: 300px;  width: auto;  height: auto;  object-fit: contain;" alt="capa">
+            {% endif %}
+            <div class="imagem__info">
+                <div class="imagem__texto">
+                    <p class="imagem__titulo">Titulo: {{ livros.titulo }}</p>
+                    <p class="imagem__descricao">Autor: {{ livros.autor }}</p>
+                    <p class="imagem__descricao">Ano publicado: {{ livros.ano_publicado }}</p>
+                    <p class="imagem__texto">Sinopse:<br>{{ livros.sinopse }}</p>
+                    <p class="imagem__texto">Editora: {{ livros.editora }}</p>
+                    <p class="imagem__texto">Generos: 
+                        {% if livros.categorias.all %}
+                            {% for categoria in livros.categorias.all %}
+                                {{ categoria.nome }}{% if not forloop.last %}, {% endif %}
+                            {% endfor %}
+                        {% else %}
+                            Nenhuma categoria cadastrada
+                        {% endif %}
+                    </p>
+                    <p class="imagem__texto">Situação: {% if livros.disponivel  %} Disponivel {% else %} Alugado {% endif %}</p>
+
+                </div>
+                <div>
+                    {% if livros.disponivel %}
+                        <form method="post" action="{% url 'alugar' livros.id %}">
+                            {% csrf_token %}
+                            <button class="btn btn-success col-12" style="padding: top 5px;"> Alugar </button>
+                        </form>
+                    {% else %}
+                        <!-- Botão de Devolver (só aparece se NÃO disponível) -->
+                        <form method="post" action="{% url 'devolver' livros.id %}">
+                            {% csrf_token %}
+                            <button class="btn btn-danger col-12" style="padding: top 5px;" > Devolver </button>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </section>
+</section>
+
+
+
+{% endblock %}
