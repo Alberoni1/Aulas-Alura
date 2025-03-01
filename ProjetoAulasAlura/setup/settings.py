@@ -43,6 +43,9 @@ INSTALLED_APPS = [
     'apps.livros',
     'apps.restaurantes',
     'apps.veiculos',
+    'apps.musicas',
+    'apps.usuarios',
+    'smart_selects',
 ]
 
 MIDDLEWARE = [
