@@ -9,15 +9,12 @@ def validate_file_size(value):
         raise ValidationError("O arquivo não pode exceder 5MB.")
 
 def validate_file_mimetype(value):
-    allowed_mimetypes = [
-        'application/pdf',  # PDF
-        'image/jpeg',       # JPG/JPEG
-        'image/png',        # PNG
-        'image/gif'         # GIF
-    ]
-    if value.file.content_type not in allowed_mimetypes:
-        raise ValidationError("Apenas arquivos PDF ou imagens (JPG, PNG, GIF) são permitidos.")
-
+    allowed_extensions = ['pdf', 'jpg', 'jpeg', 'png', 'gif']
+    ext = value.name.split('.')[-1].lower()
+    
+    if ext not in allowed_extensions:
+        raise ValidationError("Extensão inválida. Use apenas PDF, JPG, PNG ou GIF.")
+    
 class ClientePF(models.Model):
     nome = models.CharField(max_length=100)
     cpf = models.CharField(max_length=11, unique=True,verbose_name='CPF')
@@ -25,6 +22,8 @@ class ClientePF(models.Model):
     data_nascimento = models.DateField()
     celular = models.CharField(max_length=14)
     data_cadastro = models.DateField(default=datetime.now,blank=False)
+    coordenada_s = models.CharField(default='', max_length=9, verbose_name='Coordenada Sul', null=False, blank=False)
+    coordenada_o = models.CharField(default='', max_length=9, verbose_name='Coordenada Oeste', null=False, blank=False)
     
     class Meta:
         verbose_name_plural = 'Clientes PF'
