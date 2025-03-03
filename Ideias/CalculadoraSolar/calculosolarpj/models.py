@@ -1,10 +1,11 @@
 from django.db import models
 from django.forms import ValidationError
-from clientes.models import ClientePF
+from clientes.models import ClientePJ
+from calculosolar.models import CalculoIrradianciaSolar,AdicaoPotenciaKWHMes,CalcPotenciaAdicional
 import math
 
-class CalculoSolarPF(models.Model):
-    cliente = models.ForeignKey(ClientePF, on_delete=models.CASCADE)
+class CalculoSolarPJ(models.Model):
+    cliente = models.ForeignKey(ClientePJ, on_delete=models.CASCADE)
     cons_jan = models.IntegerField(default=0,verbose_name='Irradiancia (kWh) Janeiro',null=False,blank=False)
     cons_fev = models.IntegerField(default=0,verbose_name='Irradiancia (kWh) Fevereiro',null=False,blank=False)
     cons_mar = models.IntegerField(default=0,verbose_name='Irradiancia (kWh) Março',null=False,blank=False)
@@ -41,63 +42,13 @@ class CalculoSolarPF(models.Model):
         return f'Media de consumo para {self.cliente.nome} - Média: {self.media_consumo:.2f} kWh/mês'
 
     class Meta:
-        verbose_name = 'Consumo Médio PF'
-        verbose_name_plural = 'Consumos Médios PFs'
+        verbose_name = 'Consumo Médio PJ'
+        verbose_name_plural = 'Consumos Médios PJs'
         ordering = ['-id']
 
-class CalculoIrradianciaSolar(models.Model):
-    estado = models.CharField(default='',max_length=200,null=False,blank=False)
-    cidade = models.CharField(default='',max_length=200,null=False,blank=False)
-    bairro = models.CharField(default='',max_length=200,null=False,blank=False)
-    irradi_jan = models.FloatField(default=0,verbose_name='Irradiancia Janeiro',null=False,blank=False)
-    irradi_fev = models.FloatField(default=0,verbose_name='Irradiancia Fevereiro',null=False,blank=False)
-    irradi_mar = models.FloatField(default=0,verbose_name='Irradiancia Março',null=False,blank=False)
-    irradi_abr = models.FloatField(default=0,verbose_name='Irradiancia Abril',null=False,blank=False)
-    irradi_mai = models.FloatField(default=0,verbose_name='Irradiancia Maio',null=False,blank=False)
-    irradi_jun = models.FloatField(default=0,verbose_name='Irradiancia Junho',null=False,blank=False)
-    irradi_jul = models.FloatField(default=0,verbose_name='Irradiancia Julho',null=False,blank=False)
-    irradi_ago = models.FloatField(default=0,verbose_name='Irradiancia Agosto',null=False,blank=False)
-    irradi_set = models.FloatField(default=0,verbose_name='Irradiancia Setembro',null=False,blank=False)
-    irradi_out = models.FloatField(default=0,verbose_name='Irradiancia Outubro',null=False,blank=False)
-    irradi_nov = models.FloatField(default=0,verbose_name='Irradiancia Novembro',null=False,blank=False)
-    irradi_dez = models.FloatField(default=0,verbose_name='Irradiancia Dezembro',null=False,blank=False)
-
-    @property
-    def media_irradiancia(self):
-        meses = [
-            self.irradi_jan,self.irradi_fev,self.irradi_mar,
-            self.irradi_abr,self.irradi_mai,self.irradi_jun,
-            self.irradi_jul,self.irradi_ago,self.irradi_set,
-            self.irradi_out,self.irradi_nov,self.irradi_dez
-        ]
-        return sum(meses)/12 if all(meses) else 0
-
-    def clean(self):
-        if any(valor < 0 for valor in [
-            self.irradi_jan, self.irradi_fev, self.irradi_mar,
-            self.irradi_abr, self.irradi_mai, self.irradi_jun,
-            self.irradi_jul, self.irradi_ago, self.irradi_set,
-            self.irradi_out, self.irradi_nov, self.irradi_dez
-        ]):
-            raise ValidationError("Os valores de Irradiancia não podem ser negativos")
-        
-    def __str__(self):
-        return f'{self.media_irradiancia:.2f} kWh/m^(2).dia'
-
-    class Meta:
-        verbose_name = 'Irradiancia Média'
-        verbose_name_plural = 'Irradiancias Médias'
-        ordering = ['-id']
-
-class AdicaoPotenciaKWHMes(models.Model): #adiciona a potencia ao consumo médio
-    pass
-
-class CalcPotenciaAdicional(models.Model): # Faz o calculo de Consumo do Aparelho a Partir da Potencia
-    pass
-
-class CalculoPotenciaGeracaoPF(models.Model):
-    cliente = models.ForeignKey(ClientePF, on_delete=models.CASCADE)
-    consumo = models.ForeignKey(CalculoSolarPF,on_delete=models.CASCADE)
+class CalculoPotenciaGeracaoPJ(models.Model):
+    cliente = models.ForeignKey(ClientePJ, on_delete=models.CASCADE)
+    consumo = models.ForeignKey(CalculoSolarPJ,on_delete=models.CASCADE)
 #    adicconsumo = models.ForeignKey(AdicaoPotenciaKWHMes,on_delete=models.CASCADE,verbose_name='Consumo Adicional')
     irradi = models.ForeignKey(CalculoIrradianciaSolar,on_delete=models.CASCADE,verbose_name='Irradiação Solar')
     rendimento = models.IntegerField(default=100,null=False,blank=False,verbose_name='Rendimento do Sistema %')
@@ -109,16 +60,16 @@ class CalculoPotenciaGeracaoPF(models.Model):
         return pger
     
     def __str__(self):
-        return f'Potencia do Sistema: {round(self.calculogeracao,3)} kWp'
+        return f'Potencia do Sistema: {self.calculogeracao} kWp'
     
     class Meta:
-        verbose_name = 'Potência de Geração Necessária PF'
-        verbose_name_plural = 'Potências de Geração Necessárias PFs'
+        verbose_name = 'Potência de Geração Necessária PJ'
+        verbose_name_plural = 'Potências de Geração Necessárias PJs'
         ordering = ['-id']
 
-class QntPaineisPF(models.Model):
-    cliente = models.ForeignKey(ClientePF, on_delete=models.CASCADE,default=0)
-    potgeracao = models.ForeignKey(CalculoPotenciaGeracaoPF, on_delete=models.CASCADE,verbose_name='Potência de Geração',default=0)
+class QntPaineisPJ(models.Model):
+    cliente = models.ForeignKey(ClientePJ, on_delete=models.CASCADE,default=0)
+    potgeracao = models.ForeignKey(CalculoPotenciaGeracaoPJ, on_delete=models.CASCADE,verbose_name='Potência de Geração',default=0)
     potpainel = models.IntegerField(default=0,null=False,blank=False,verbose_name='Potencia do Painel (W)')
 
     @property
@@ -132,20 +83,24 @@ class QntPaineisPF(models.Model):
         return potsis
 
     def __str__(self):
-        return f'{self.calculopainel}'
+        return f'Numero de Paineis necessarios: {self.calculopainel}'
 
     class Meta:
-        verbose_name = 'Quantdade de Painel Necessário PF'
-        verbose_name_plural = 'Quantdade de Paineis Necessários PFs'
+        verbose_name = 'Quantdade de Painel Necessário PJ'
+        verbose_name_plural = 'Quantdade de Paineis Necessários PJs'
         ordering = ['-id']
 
-class GeracaoPrevistaPF(models.Model):
-    cliente = models.ForeignKey(ClientePF, on_delete=models.CASCADE)
-    potsist = models.ForeignKey(QntPaineisPF, on_delete=models.CASCADE,verbose_name='Numero de Paineis no Sistema')
-    paineisdesejados = models.IntegerField(null=True,blank=True,verbose_name='Quantidade de Paineis Desejada')
+class AdicaoPotenciaKWHMes(models.Model): #adiciona a potencia ao consumo médio
+    pass
+
+class CalcPotenciaAdicional(models.Model): # Faz o calculo de Consumo do Aparelho a Partir da Potencia
+    pass
+
+class GeracaoPrevistaPJ(models.Model):
+    cliente = models.ForeignKey(ClientePJ, on_delete=models.CASCADE)
+    potsist = models.ForeignKey(QntPaineisPJ, on_delete=models.CASCADE,verbose_name='Potencia do Sistema')
     irrad = models.ForeignKey(CalculoIrradianciaSolar, on_delete=models.CASCADE,verbose_name='Irradiância Local')
-    rend = models.ForeignKey(CalculoPotenciaGeracaoPF, on_delete=models.CASCADE, verbose_name='Rendimento')
-    
+    rend = models.ForeignKey(CalculoPotenciaGeracaoPJ, on_delete=models.CASCADE, verbose_name='Rendimento')
     
     @property
     def gercaoesperada(self):
@@ -174,10 +129,7 @@ class GeracaoPrevistaPF(models.Model):
         geracao_mensal = []
 
         for mes,irradiancia,dia in zip(meses, irradiancias, dias_no_mes):
-            if self.paineisdesejados:    
-                pot_sistema = float(self.paineisdesejados)
-            else:
-                pot_sistema = float(self.potsist.potenciasistema)
+            pot_sistema = float(self.potsist.potenciasistema)
             rendimento = float(self.rend.rendimento)            
             geracao = (irradiancia*dia*pot_sistema*rendimento)/100
             geracao_mensal.append((mes,geracao))
@@ -194,4 +146,4 @@ class GeracaoPrevistaPF(models.Model):
     @property
     def irradiacao_media(self):
         return self.rend.irradi.media_irradiancia
-        
+   

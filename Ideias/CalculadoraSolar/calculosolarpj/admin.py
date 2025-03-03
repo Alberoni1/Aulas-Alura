@@ -1,33 +1,8 @@
 from django.contrib import admin
-from calculosolar.models import GeracaoPrevistaPF,CalculoSolarPF,CalculoIrradianciaSolar,CalculoPotenciaGeracaoPF,QntPaineisPF
+from calculosolarpj.models import QntPaineisPJ,CalculoPotenciaGeracaoPJ,CalculoSolarPJ,GeracaoPrevistaPJ
 
-@admin.register(CalculoIrradianciaSolar)
-class CalculoIrradianciaAdmin(admin.ModelAdmin):
-    list_display = ('estado','cidade','bairro', 'media_irradiancia')
-    readonly_fields = ('media_irradiancia',)
-    fieldsets = (
-            ('Bairro', {
-                'fields': ('estado','cidade','bairro',)
-            }),
-            ('Consumo Mensal (kWh)', {
-                'fields': (
-                    ('irradi_jan', 'irradi_fev', 'irradi_mar'),
-                    ('irradi_abr', 'irradi_mai', 'irradi_jun'),
-                    ('irradi_jul', 'irradi_ago', 'irradi_set'),
-                    ('irradi_out', 'irradi_nov', 'irradi_dez')
-                )
-            }),
-            ('Resultados', {
-                'fields': ('media_irradiancia',)
-            }),
-        )
-    
-    def media_irradiancia(self, obj):
-            return f"{obj.media_irradiancia:.2f} kWh/m^(2).dia"
-    media_irradiancia.short_description = 'Média Mensal'
-
-@admin.register(CalculoSolarPF)
-class CalculoSolarPFAdmin(admin.ModelAdmin):
+@admin.register(CalculoSolarPJ)
+class CalculoSolarPJAdmin(admin.ModelAdmin):
     list_display = ('cliente', 'media_consumo')
     readonly_fields = ('media_consumo',)
     fieldsets = (
@@ -51,10 +26,10 @@ class CalculoSolarPFAdmin(admin.ModelAdmin):
             return f"{obj.media_consumo:.2f} kWh/mês"
     media_consumo.short_description = 'Média Mensal'
 
-@admin.register(CalculoPotenciaGeracaoPF)
-class CalculoPotGeracaoPFAdmin(admin.ModelAdmin):
-    list_display = ('cliente','calculogeracao')
-    readonly_fields = ('calculogeracao',)
+@admin.register(CalculoPotenciaGeracaoPJ)
+class CalculoPotGeracaoPJAdmin(admin.ModelAdmin):
+    list_display = ('cliente','calculopainel')
+    readonly_fields = ('calculopainel',)
     
     fieldsets = (
             ('Cliente', {
@@ -66,17 +41,17 @@ class CalculoPotGeracaoPFAdmin(admin.ModelAdmin):
                 )
             }),
             ('Resultados', {
-                'fields': ('calculogeracao',)
+                'fields': ('calculopainel',)
             }),
         )
 
-    def calculogeracao(self, obj):
-            return f"{obj.calculogeracao:.2f} kWp"
-    calculogeracao.short_description = 'Potencia de Geração Necessária'
- 
-@admin.register(QntPaineisPF)
-class QntPaineisPFAdmin(admin.ModelAdmin):
-    list_display = ('cliente','calculopainel','potenciasistema')
+    def calculopainel(self, obj):
+            return f"{obj.calculopainel:.2f} kWp"
+    calculopainel.short_description = 'Potencia de Geração Necessária'
+
+@admin.register(QntPaineisPJ)
+class QntPaineisPJAdmin(admin.ModelAdmin):
+    list_display = ('cliente','calculopainel')
     readonly_fields = ('calculopainel','potenciasistema')
     
     fieldsets = (
@@ -99,10 +74,10 @@ class QntPaineisPFAdmin(admin.ModelAdmin):
 
     def potenciasistema(self,obj):
           return f'{obj.potenciasistema} kWp'
-    potenciasistema.short_description = 'Potencia Calculada do Sistema'
-
-@admin.register(GeracaoPrevistaPF)
-class GeracaoPrevistaPFAdmin(admin.ModelAdmin):
+    potenciasistema.short_description = 'Potencia Calculada do Sitsema'
+  
+@admin.register(GeracaoPrevistaPJ)
+class GeracaoPrevistaPJAdmin(admin.ModelAdmin):
     list_display = ('cliente', 'get_irradiacao', 'get_rendimento', 'geracao_formatada')
     readonly_fields = ('geracao_formatada',)
 
