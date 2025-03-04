@@ -1,23 +1,45 @@
 from django.db import models
 from django.forms import ValidationError
 from clientes.models import ClientePJ
-from calculosolar.models import CalculoIrradianciaSolar,AdicaoPotenciaKWHMes,CalcPotenciaAdicional
+from calculosolar.models import CalculoIrradianciaSolar
 import math
 
 class CalculoSolarPJ(models.Model):
     cliente = models.ForeignKey(ClientePJ, on_delete=models.CASCADE)
-    cons_jan = models.IntegerField(default=0,verbose_name='Irradiancia (kWh) Janeiro',null=False,blank=False)
-    cons_fev = models.IntegerField(default=0,verbose_name='Irradiancia (kWh) Fevereiro',null=False,blank=False)
-    cons_mar = models.IntegerField(default=0,verbose_name='Irradiancia (kWh) Março',null=False,blank=False)
-    cons_abr = models.IntegerField(default=0,verbose_name='Irradiancia (kWh) Abril',null=False,blank=False)
-    cons_mai = models.IntegerField(default=0,verbose_name='Irradiancia (kWh) Maio',null=False,blank=False)
-    cons_jun = models.IntegerField(default=0,verbose_name='Irradiancia (kWh) Junho',null=False,blank=False)
-    cons_jul = models.IntegerField(default=0,verbose_name='Irradiancia (kWh) Julho',null=False,blank=False)
-    cons_ago = models.IntegerField(default=0,verbose_name='Irradiancia (kWh) Agosto',null=False,blank=False)
-    cons_set = models.IntegerField(default=0,verbose_name='Irradiancia (kWh) Setembro',null=False,blank=False)
-    cons_out = models.IntegerField(default=0,verbose_name='Irradiancia (kWh) Outubro',null=False,blank=False)
-    cons_nov = models.IntegerField(default=0,verbose_name='Irradiancia (kWh) Novembro',null=False,blank=False)
-    cons_dez = models.IntegerField(default=0,verbose_name='Irradiancia (kWh) Dezembro',null=False,blank=False)
+    cons_jan = models.IntegerField(default=0,verbose_name='Consumo (kWh) Janeiro',null=False,blank=False)
+    cons_fev = models.IntegerField(default=0,verbose_name='Consumo (kWh) Fevereiro',null=False,blank=False)
+    cons_mar = models.IntegerField(default=0,verbose_name='Consumo (kWh) Março',null=False,blank=False)
+    cons_abr = models.IntegerField(default=0,verbose_name='Consumo (kWh) Abril',null=False,blank=False)
+    cons_mai = models.IntegerField(default=0,verbose_name='Consumo (kWh) Maio',null=False,blank=False)
+    cons_jun = models.IntegerField(default=0,verbose_name='Consumo (kWh) Junho',null=False,blank=False)
+    cons_jul = models.IntegerField(default=0,verbose_name='Consumo (kWh) Julho',null=False,blank=False)
+    cons_ago = models.IntegerField(default=0,verbose_name='Consumo (kWh) Agosto',null=False,blank=False)
+    cons_set = models.IntegerField(default=0,verbose_name='Consumo (kWh) Setembro',null=False,blank=False)
+    cons_out = models.IntegerField(default=0,verbose_name='Consumo (kWh) Outubro',null=False,blank=False)
+    cons_nov = models.IntegerField(default=0,verbose_name='Consumo (kWh) Novembro',null=False,blank=False)
+    cons_dez = models.IntegerField(default=0,verbose_name='Consumo (kWh) Dezembro',null=False,blank=False)
+
+    @property
+    def soma_potencia_adicional(self):
+        return sum(item.calculopotadicional for item in self.adicaopotenciakwhmes_set.all())
+
+    @property
+    def soma_consumo_kwh_adicional(self):
+        return sum(item.calculokwh for item in self.calcpotenciaadicional_set.all())
+
+    @property
+    def consumo_adicional_total(self):
+        soma1 = self.soma_potencia_adicional
+        soma2 = self.soma_consumo_kwh_adicional
+
+        return (soma1 + soma2)
+    
+    @property
+    def cons_total(self):
+        soma3 = self.consumo_adicional_total
+        soma4 = self.media_consumo
+
+        return (soma4 + soma3)
 
     @property
     def media_consumo(self):
@@ -46,30 +68,135 @@ class CalculoSolarPJ(models.Model):
         verbose_name_plural = 'Consumos Médios PJs'
         ordering = ['-id']
 
+class AdicaoPotenciaKWHMes(models.Model): #adiciona a potencia ao consumo médio
+    cliente = models.ForeignKey(CalculoSolarPJ,on_delete=models.CASCADE,default=0)
+    equipamento = models.CharField(verbose_name='Equipamento',default='',null=True,blank=True,max_length=100)
+    consumo = models.FloatField(verbose_name='Consumo (kWh/mes)',null=True,blank=True)
+    horas = models.FloatField(verbose_name='Horas de Uso por dia',null=True,blank=True)
+    minutos = models.FloatField(verbose_name='Minutos de Uso por dia',null=True,blank=True)
+    dias = models.FloatField(verbose_name='Dias uso mês',null=True,blank=True)
+
+    def clean(self):
+        super().clean()
+        if self.equipamento.strip() != '':
+            campos_fixos = {
+                'consumo': 'Consumo é obrigatório quando Equipamento é preenchido.',
+                'dias': 'Dias são obrigatórios quando Equipamento é preenchido.'
+            }
+            
+        for campo, mensagem in campos_fixos.items():
+            if getattr(self, campo) is None:
+                raise ValidationError({campo: mensagem})
+        
+        if self.horas is None and self.minutos is None:
+            raise ValidationError({
+                'horas': 'Preencha horas ou minutos.',
+                'minutos': 'Preencha horas ou minutos.'
+            })
+        elif self.horas is None:
+            if self.minutos is None:
+                raise ValidationError({'minutos': 'Minutos é obrigatório se horas não for preenchido.'})
+        elif self.minutos is None:
+            pass  
+
+    @property
+    def calculopotadicional(self):
+        if None in (self.consumo, self.dias):
+            return 0
+        elif self.horas == None:
+            potadicional = self.consumo*(self.dias/30)*(self.minutos/60)
+            return potadicional
+        elif self.minutos == None:
+            potadicional = self.consumo*(self.dias/30)*(self.horas)
+            return potadicional
+        else:
+            potadicional = self.consumo*(self.dias/30)*(self.horas+(self.minutos/60))
+            return potadicional
+    
+    def __str__(self):
+        return f'Consumo de {self.equipamento}: {self.calculopotadicional:.2f} kWh/mês'
+
+    class Meta:
+        verbose_name = 'Adição de consumo por kWh/mes do equipamento'
+        verbose_name_plural = 'Adições de consumo por kWh/mes dos equipamentos'
+
+class CalcPotenciaAdicional(models.Model): # Faz o calculo de Consumo do Aparelho a Partir da Potencia INSTÂNTANEA
+    cliente = models.ForeignKey(CalculoSolarPJ, on_delete=models.CASCADE,default=0)
+    equipamento = models.CharField(max_length=100, null=True,blank=True, default='',verbose_name='Equipamento')
+    pot =  models.FloatField(max_length=100, null=True,blank=True,verbose_name='Potência do equipamento (Watts)')
+    horas = models.FloatField(verbose_name='Horas de Uso por dia',null=True,blank=True)
+    minutos = models.FloatField(verbose_name='Minutos de Uso por dia',null=True,blank=True)
+    dias = models.FloatField(verbose_name='Dias uso mês',null=True,blank=True)
+
+    def clean(self):
+        super().clean()
+        if self.equipamento.strip() != '':
+            campos_fixos = {
+                'pot': 'Potência é obrigatória quando Equipamento é preenchido.',
+                'dias': 'Dias são obrigatórios quando Equipamento é preenchido.'
+            }
+            
+        for campo, mensagem in campos_fixos.items():
+            if getattr(self, campo) is None:
+                raise ValidationError({campo: mensagem})
+        
+        if self.horas is None and self.minutos is None:
+            raise ValidationError({
+                'horas': 'Preencha horas ou minutos.',
+                'minutos': 'Preencha horas ou minutos.'
+            })
+        elif self.horas is None:
+            if self.minutos is None:
+                raise ValidationError({'minutos': 'Minutos é obrigatório se horas não for preenchido.'})
+        elif self.minutos is None:
+            pass  
+
+    @property
+    def calculokwh(self):
+        if None in (self.pot,self.dias):
+            return 0
+        elif self.horas == None:
+            self.horas = 0
+            potadicional = (self.pot/1000)*self.dias*(self.horas+(self.minutos/60))
+            return potadicional
+        elif self.minutos == None:
+            self.minutos = 0
+            potadicional = (self.pot/1000)*self.dias*(self.horas+(self.minutos/60))
+            return potadicional
+        else:
+            potadicional = (self.pot/1000)*self.dias*(self.horas+(self.minutos/60))
+            return potadicional
+    
+    def __str__(self):
+        return f'Consumo de {self.equipamento}: {self.calculokwh:.2f} kWh/mês'
+
+    class Meta:
+        verbose_name = 'Adição de consumo pela Potência do equipamento'
+        verbose_name_plural = 'Adições de consumo pela Potência dos equipamentos'
+
 class CalculoPotenciaGeracaoPJ(models.Model):
     cliente = models.ForeignKey(ClientePJ, on_delete=models.CASCADE)
-    consumo = models.ForeignKey(CalculoSolarPJ,on_delete=models.CASCADE)
-#    adicconsumo = models.ForeignKey(AdicaoPotenciaKWHMes,on_delete=models.CASCADE,verbose_name='Consumo Adicional')
+    consumo = models.ForeignKey(CalculoSolarPJ,on_delete=models.CASCADE, verbose_name='Consumo Base')
     irradi = models.ForeignKey(CalculoIrradianciaSolar,on_delete=models.CASCADE,verbose_name='Irradiação Solar')
-    rendimento = models.IntegerField(default=100,null=False,blank=False,verbose_name='Rendimento do Sistema %')
+    rendimento = models.IntegerField(default=100,null=False,blank=False,verbose_name='Eficiência do Sistema %')
     
     @property
     def calculogeracao(self):
-        #pger = ((self.consumo.media_consumo) + (self.adicconsumo))*1/(30*(self.irradi.media_irradiacao)) qndo fizer a classe de Adicional de consumo
-        pger = (self.consumo.media_consumo)*1/(30*(self.irradi.media_irradiancia)*(self.rendimento/100))
+        pger = ((self.consumo.media_consumo) + (self.consumo.soma_potencia_adicional))*1/(30*(self.irradi.media_irradiancia)*(self.rendimento/100)) 
+#        pger = (self.consumo.media_consumo)*1/(30*(self.irradi.media_irradiancia)*(self.rendimento/100))
         return pger
     
     def __str__(self):
-        return f'Potencia do Sistema: {self.calculogeracao} kWp'
+        return f'Potencia do Sistema: {round(self.calculogeracao,3)} kWp'
     
     class Meta:
         verbose_name = 'Potência de Geração Necessária PJ'
         verbose_name_plural = 'Potências de Geração Necessárias PJs'
-        ordering = ['-id']
+        ordering = ['-id']  
 
 class QntPaineisPJ(models.Model):
-    cliente = models.ForeignKey(ClientePJ, on_delete=models.CASCADE,default=0)
-    potgeracao = models.ForeignKey(CalculoPotenciaGeracaoPJ, on_delete=models.CASCADE,verbose_name='Potência de Geração',default=0)
+    cliente = models.ForeignKey(ClientePJ, on_delete=models.CASCADE)
+    potgeracao = models.ForeignKey(CalculoPotenciaGeracaoPJ, on_delete=models.CASCADE,verbose_name='Potência de Geração')
     potpainel = models.IntegerField(default=0,null=False,blank=False,verbose_name='Potencia do Painel (W)')
 
     @property
@@ -83,24 +210,20 @@ class QntPaineisPJ(models.Model):
         return potsis
 
     def __str__(self):
-        return f'Numero de Paineis necessarios: {self.calculopainel}'
+        return f'{self.calculopainel}'
 
     class Meta:
         verbose_name = 'Quantdade de Painel Necessário PJ'
         verbose_name_plural = 'Quantdade de Paineis Necessários PJs'
         ordering = ['-id']
 
-class AdicaoPotenciaKWHMes(models.Model): #adiciona a potencia ao consumo médio
-    pass
-
-class CalcPotenciaAdicional(models.Model): # Faz o calculo de Consumo do Aparelho a Partir da Potencia
-    pass
-
 class GeracaoPrevistaPJ(models.Model):
     cliente = models.ForeignKey(ClientePJ, on_delete=models.CASCADE)
-    potsist = models.ForeignKey(QntPaineisPJ, on_delete=models.CASCADE,verbose_name='Potencia do Sistema')
+    potsist = models.ForeignKey(QntPaineisPJ, on_delete=models.CASCADE,verbose_name='Numero ideal de Paineis no Sistema')
+    paineisdesejados = models.IntegerField(null=True,blank=True,verbose_name='Quantidade de Paineis Desejada')
     irrad = models.ForeignKey(CalculoIrradianciaSolar, on_delete=models.CASCADE,verbose_name='Irradiância Local')
-    rend = models.ForeignKey(CalculoPotenciaGeracaoPJ, on_delete=models.CASCADE, verbose_name='Rendimento')
+    rend = models.ForeignKey(CalculoPotenciaGeracaoPJ, on_delete=models.CASCADE, verbose_name='Eficiência')
+    
     
     @property
     def gercaoesperada(self):
@@ -129,7 +252,10 @@ class GeracaoPrevistaPJ(models.Model):
         geracao_mensal = []
 
         for mes,irradiancia,dia in zip(meses, irradiancias, dias_no_mes):
-            pot_sistema = float(self.potsist.potenciasistema)
+            if self.paineisdesejados:    
+                pot_sistema = float(self.paineisdesejados)
+            else:
+                pot_sistema = float(self.potsist.potenciasistema)
             rendimento = float(self.rend.rendimento)            
             geracao = (irradiancia*dia*pot_sistema*rendimento)/100
             geracao_mensal.append((mes,geracao))
@@ -146,4 +272,4 @@ class GeracaoPrevistaPJ(models.Model):
     @property
     def irradiacao_media(self):
         return self.rend.irradi.media_irradiancia
-   
+        

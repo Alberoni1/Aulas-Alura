@@ -22,8 +22,8 @@ class ClientePF(models.Model):
     data_nascimento = models.DateField()
     celular = models.CharField(max_length=14)
     data_cadastro = models.DateField(default=datetime.now,blank=False)
-    coordenada_s = models.CharField(default='', max_length=9, verbose_name='Coordenada Sul', null=False, blank=False)
-    coordenada_o = models.CharField(default='', max_length=9, verbose_name='Coordenada Oeste', null=False, blank=False)
+    coordenada_s = models.CharField(default='', max_length=9, verbose_name='Coordenada Sul', null=True, blank=True)
+    coordenada_o = models.CharField(default='', max_length=9, verbose_name='Coordenada Oeste', null=True, blank=True)
     
     class Meta:
         verbose_name_plural = 'Clientes PF'
@@ -37,7 +37,10 @@ class ClientePJ(models.Model):
     email = models.EmailField(max_length=200,blank=False,null=False)
     celular = models.CharField(max_length=14)
     data_cadastro = models.DateField(default=datetime.now,blank=False)
-    
+    coordenada_s = models.CharField(default='', max_length=9, verbose_name='Coordenada Sul', null=True, blank=True)
+    coordenada_o = models.CharField(default='', max_length=9, verbose_name='Coordenada Oeste', null=True, blank=True)
+
+
     class Meta:
         verbose_name_plural = 'Clientes PJ'
 
